@@ -23,13 +23,13 @@ const (
 )
 
 type SessionStats struct {
-	Accuracy      float64
+	Accuracy     float64
 	CharactersPM int
-	Elapsed       time.Duration
-	Progress      float64
-	Combo         int
-	BestCombo     int
-	Mistakes      int
+	Elapsed      time.Duration
+	Progress     float64
+	Combo        int
+	BestCombo    int
+	Mistakes     int
 }
 
 // PracticeSession owns all gameplay state. Keeping it independent from Fyne
@@ -165,13 +165,13 @@ func (s *PracticeSession) Stats(now time.Time) SessionStats {
 	}
 
 	return SessionStats{
-		Accuracy:      accuracy,
+		Accuracy:     accuracy,
 		CharactersPM: charactersPM,
-		Elapsed:       elapsed,
-		Progress:      progress,
-		Combo:         s.Combo,
-		BestCombo:     s.BestCombo,
-		Mistakes:      s.Mistakes,
+		Elapsed:      elapsed,
+		Progress:     progress,
+		Combo:        s.Combo,
+		BestCombo:    s.BestCombo,
+		Mistakes:     s.Mistakes,
 	}
 }
 
