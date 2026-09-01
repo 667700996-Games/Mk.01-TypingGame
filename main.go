@@ -27,7 +27,10 @@ const (
 func main() {
 	a := app.NewWithID(appID)
 	a.Settings().SetTheme(&anthemTheme{base: theme.DefaultTheme(), regular: fontData})
+	newGameWindow(a).ShowAndRun()
+}
 
+func newGameWindow(a fyne.App) fyne.Window {
 	w := a.NewWindow(appTitle)
 	w.Resize(fyne.NewSize(1080, 720))
 	w.SetMaster()
@@ -35,9 +38,15 @@ func main() {
 	mode := practiceModes[0]
 	session := NewPracticeSession(lyricsForVerse(mode.Verse))
 
-	brandTitle := widget.NewLabel("애국가")
-	brandTitle.TextStyle = fyne.TextStyle{Bold: true}
-	brandTitle.Importance = widget.HighImportance
+	brandTitle := widget.NewRichText(&widget.TextSegment{
+		Text: "애국가",
+		Style: widget.RichTextStyle{
+			ColorName: theme.ColorNamePrimary,
+			SizeName:  theme.SizeNameHeadingText,
+			TextStyle: fyne.TextStyle{Bold: true},
+		},
+	})
+	brandTitle.Wrapping = fyne.TextWrapOff
 	brandSubtitle := widget.NewLabel("우리의 노랫말을, 한 글자씩 바르게")
 	brandSubtitle.Importance = widget.LowImportance
 
@@ -45,7 +54,7 @@ func main() {
 	redMark.SetMinSize(fyne.NewSize(42, 5))
 	blueMark := canvas.NewRectangle(color.NRGBA{R: 25, G: 76, B: 145, A: 255})
 	blueMark.SetMinSize(fyne.NewSize(42, 5))
-	mark := container.NewHBox(redMark, blueMark)
+	mark := container.NewCenter(container.NewHBox(redMark, blueMark))
 
 	modeLabels := make([]string, 0, len(practiceModes))
 	for _, item := range practiceModes {
@@ -54,7 +63,9 @@ func main() {
 	modeSelect := widget.NewSelect(modeLabels, nil)
 	modeSelect.PlaceHolder = "연습 범위"
 	modeSelect.SetSelected(mode.Label)
-	modeBox := container.NewVBox(widget.NewLabel("연습 범위"), modeSelect)
+	modeWidth := canvas.NewRectangle(color.Transparent)
+	modeWidth.SetMinSize(fyne.NewSize(210, 0))
+	modeBox := container.NewVBox(widget.NewLabel("연습 범위"), container.NewStack(modeWidth, modeSelect))
 
 	header := container.NewBorder(
 		nil, nil,
@@ -84,12 +95,12 @@ func main() {
 	feedbackIcon.Importance = widget.LowImportance
 	feedback := widget.NewLabel("첫 글자를 입력하면 기록이 시작됩니다")
 	feedback.Importance = widget.LowImportance
-	keyboardHint := widget.NewLabel("문장을 완성한 뒤  Enter ↵")
+	keyboardHint := widget.NewLabel("문장을 완성한 뒤  [Enter]")
 	keyboardHint.Alignment = fyne.TextAlignTrailing
 	keyboardHint.Importance = widget.LowImportance
 
 	accuracyValue, accuracyCard := metricCard("정확도")
-	speedValue, speedCard := metricCard("타수 / 분")
+	speedValue, speedCard := metricCard("글자 / 분")
 	timeValue, timeCard := metricCard("경과 시간")
 	comboValue, comboCard := metricCard("연속 정타")
 	metrics := container.NewGridWithColumns(4, accuracyCard, speedCard, timeCard, comboCard)
@@ -102,6 +113,7 @@ func main() {
 	cardBackground.CornerRadius = 18
 	cardBackground.StrokeColor = color.NRGBA{R: 218, G: 216, B: 210, A: 255}
 	cardBackground.StrokeWidth = 1
+	cardBackground.SetMinSize(fyne.NewSize(0, 330))
 
 	practiceCard := container.NewStack(
 		cardBackground,
@@ -115,8 +127,6 @@ func main() {
 			container.NewBorder(nil, nil, container.NewHBox(feedbackIcon, feedback), keyboardHint),
 		)),
 	)
-	practiceCard.Resize(fyne.NewSize(0, 330))
-
 	restartButton := widget.NewButton("처음부터", nil)
 	restartButton.Importance = widget.LowImportance
 	footerNote := widget.NewLabel("공백까지 노랫말과 같아야 다음 소절로 넘어갑니다")
@@ -131,10 +141,17 @@ func main() {
 	)
 	page := container.NewPadded(mainContent)
 
-	resultTitle := widget.NewLabel("애국가 완주")
-	resultTitle.Alignment = fyne.TextAlignCenter
-	resultTitle.TextStyle = fyne.TextStyle{Bold: true}
-	resultTitle.Importance = widget.HighImportance
+	resultTitleSegment := &widget.TextSegment{
+		Text: "애국가 완주",
+		Style: widget.RichTextStyle{
+			Alignment: fyne.TextAlignCenter,
+			ColorName: theme.ColorNamePrimary,
+			SizeName:  theme.SizeNameHeadingText,
+			TextStyle: fyne.TextStyle{Bold: true},
+		},
+	}
+	resultTitle := widget.NewRichText(resultTitleSegment)
+	resultTitle.Wrapping = fyne.TextWrapOff
 	resultMessage := widget.NewLabel("")
 	resultMessage.Alignment = fyne.TextAlignCenter
 	resultMessage.Wrapping = fyne.TextWrapWord
@@ -185,7 +202,7 @@ func main() {
 		setTargetSegments(target, line.Text, session.Input)
 
 		accuracyValue.SetText(fmt.Sprintf("%.0f%%", stats.Accuracy))
-		speedValue.SetText(fmt.Sprintf("%d타", stats.CharactersPM))
+		speedValue.SetText(fmt.Sprintf("%d자", stats.CharactersPM))
 		timeValue.SetText(formatDuration(stats.Elapsed))
 		comboValue.SetText(fmt.Sprintf("%d자", stats.Combo))
 
@@ -215,9 +232,18 @@ func main() {
 
 	showResult := func(now time.Time) {
 		stats := session.Stats(now)
-		resultTitle.SetText(fmt.Sprintf("%s 완주", mode.Label))
-		resultMessage.SetText("마지막 소절까지 또박또박 완성했습니다.\n오늘의 기록을 기억하고 한 번 더 도전해 보세요.")
-		resultStats.SetText(fmt.Sprintf("정확도 %.0f%%    ·    %d타/분    ·    %s    ·    최고 연속 %d자",
+		resultTitleSegment.Text = fmt.Sprintf("%s 완주", mode.Label)
+		resultTitle.Refresh()
+
+		bestKey := fmt.Sprintf("best-characters-per-minute-%d", mode.Verse)
+		previousBest := a.Preferences().Int(bestKey)
+		if stats.CharactersPM > previousBest {
+			a.Preferences().SetInt(bestKey, stats.CharactersPM)
+			resultMessage.SetText("새로운 개인 최고 기록입니다!\n한 소절씩 또박또박 완성한 결과예요.")
+		} else {
+			resultMessage.SetText("마지막 소절까지 또박또박 완성했습니다.\n오늘의 기록을 기억하고 한 번 더 도전해 보세요.")
+		}
+		resultStats.SetText(fmt.Sprintf("정확도 %.0f%%    ·    %d자/분    ·    %s    ·    최고 연속 %d자",
 			stats.Accuracy, stats.CharactersPM, formatDuration(stats.Elapsed), stats.BestCombo))
 		input.Disable()
 		resultOverlay.Show()
@@ -229,6 +255,12 @@ func main() {
 		setInputText("")
 		input.Enable()
 		resultOverlay.Hide()
+		best := a.Preferences().Int(fmt.Sprintf("best-characters-per-minute-%d", mode.Verse))
+		if best > 0 {
+			footerNote.SetText(fmt.Sprintf("개인 최고 %d자/분  ·  공백까지 정확히 입력하세요", best))
+		} else {
+			footerNote.SetText("공백까지 노랫말과 같아야 다음 소절로 넘어갑니다")
+		}
 		refresh(time.Now())
 		w.Canvas().Focus(input)
 	}
@@ -272,9 +304,22 @@ func main() {
 		}
 	}
 
+	clockAnimation := fyne.NewAnimation(500*time.Millisecond, func(_ float32) {
+		if session.State != SessionActive {
+			return
+		}
+		stats := session.Stats(time.Now())
+		speedValue.SetText(fmt.Sprintf("%d자", stats.CharactersPM))
+		timeValue.SetText(formatDuration(stats.Elapsed))
+	})
+	clockAnimation.Curve = fyne.AnimationLinear
+	clockAnimation.RepeatCount = fyne.AnimationRepeatForever
+	w.SetOnClosed(clockAnimation.Stop)
+
 	refresh(time.Now())
 	w.Canvas().Focus(input)
-	w.ShowAndRun()
+	clockAnimation.Start()
+	return w
 }
 
 func metricCard(label string) (*widget.Label, fyne.CanvasObject) {
@@ -289,6 +334,7 @@ func metricCard(label string) (*widget.Label, fyne.CanvasObject) {
 
 	background := canvas.NewRectangle(color.NRGBA{R: 235, G: 238, B: 242, A: 255})
 	background.CornerRadius = 12
+	background.SetMinSize(fyne.NewSize(0, 82))
 	return value, container.NewStack(background, container.NewPadded(container.NewVBox(value, caption)))
 }
 
@@ -312,8 +358,10 @@ func setTargetSegments(target *widget.RichText, targetText, input string) {
 		segments = append(segments, &widget.TextSegment{
 			Text: text,
 			Style: widget.RichTextStyle{
+				Alignment: fyne.TextAlignCenter,
 				SizeName:  theme.SizeNameSubHeadingText,
 				ColorName: colorName,
+				Inline:    true,
 				TextStyle: fyne.TextStyle{Bold: true},
 			},
 		})
