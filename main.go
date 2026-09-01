@@ -305,42 +305,42 @@ func setTargetSegments(target *widget.RichText, targetText, input string) {
 	inputRunes := []rune(input)
 	segments := make([]widget.RichTextSegment, 0, 4)
 
-	appendSegment := func(text string, importance widget.Importance) {
+	appendSegment := func(text string, colorName fyne.ThemeColorName) {
 		if text == "" {
 			return
 		}
 		segments = append(segments, &widget.TextSegment{
 			Text: text,
 			Style: widget.RichTextStyle{
-				SizeName:   theme.SizeNameSubHeadingText,
-				Importance: importance,
-				TextStyle:  fyne.TextStyle{Bold: true},
+				SizeName:  theme.SizeNameSubHeadingText,
+				ColorName: colorName,
+				TextStyle: fyne.TextStyle{Bold: true},
 			},
 		})
 	}
 
 	var builder strings.Builder
-	currentImportance := widget.MediumImportance
+	currentColor := theme.ColorNameForeground
 	for index, expected := range targetRunes {
-		importance := widget.MediumImportance
+		colorName := theme.ColorNameForeground
 		if index < len(inputRunes) {
 			if inputRunes[index] == expected {
-				importance = widget.SuccessImportance
+				colorName = theme.ColorNameSuccess
 			} else {
-				importance = widget.DangerImportance
+				colorName = theme.ColorNameError
 			}
 		}
-		if builder.Len() > 0 && importance != currentImportance {
-			appendSegment(builder.String(), currentImportance)
+		if builder.Len() > 0 && colorName != currentColor {
+			appendSegment(builder.String(), currentColor)
 			builder.Reset()
 		}
-		currentImportance = importance
+		currentColor = colorName
 		builder.WriteRune(expected)
 	}
-	appendSegment(builder.String(), currentImportance)
+	appendSegment(builder.String(), currentColor)
 
 	if len(inputRunes) > len(targetRunes) {
-		appendSegment(string(inputRunes[len(targetRunes):]), widget.DangerImportance)
+		appendSegment(string(inputRunes[len(targetRunes):]), theme.ColorNameError)
 	}
 	target.Segments = segments
 	target.Refresh()

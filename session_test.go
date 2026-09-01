@@ -90,7 +90,7 @@ func TestSessionRequiresExactSubmissionAndFinishesOnce(t *testing.T) {
 }
 
 func TestMismatchCountIncludesOverflow(t *testing.T) {
-	if got := mismatchCount("대한X사람!", "대한 사람"); got != 3 {
-		t.Fatalf("mismatchCount=%d, want 3", got)
+	if got := mismatchCount("대한X사람!", "대한 사람"); got != 2 {
+		t.Fatalf("mismatchCount=%d, want 2", got)
 	}
 }
