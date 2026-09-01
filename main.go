@@ -41,7 +41,7 @@ const (
 		"무궁화 삼천리 화려강산\n" +
 		"대한사람 대한으로 길이 보전하세"
 	inputHint       = "현재 문장을 입력하세요."
-	headerTitle     = "Mk.04-Go-TypingGame"
+	headerTitle     = "Mk.01-TypingGame"
 	resetButtonText = "초기화"
 )
 

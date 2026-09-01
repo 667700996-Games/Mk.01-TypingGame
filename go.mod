@@ -1,4 +1,4 @@
-module github.com/299-792-458/Mk.04-Go-TypingGame
+module github.com/299-792-458/Mk.01-TypingGame
 
 go 1.21
 
