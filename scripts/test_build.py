@@ -101,6 +101,13 @@ class LifecycleTests(unittest.TestCase):
         return pointer, {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in directory.iterdir()}
 
     def test_success_package_and_retention(self):
+        preserved = {}
+        for name in ("releases/v1/package", "rollback/base", "symbols/crash", "saves/personal-best",
+                     "shared-cache/dependency"):
+            path = self.project / name
+            path.parent.mkdir(parents=True)
+            path.write_bytes(b"preserved original")
+            preserved[path] = path.read_bytes()
         for _ in range(12):
             result = self.invoke("package")
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -108,6 +115,7 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(len(list((self.root / "dev").iterdir())), 2)
         self.assertEqual(len(list((self.root / "logs").iterdir())), 10)
         self.assertTrue(self.digest_current()[1])
+        self.assertTrue(all(path.read_bytes() == data for path, data in preserved.items()))
 
     def test_failure_preserves_good_output(self):
         self.assertEqual(self.invoke().returncode, 0)
@@ -124,6 +132,8 @@ class LifecycleTests(unittest.TestCase):
         self.assertIn(b"FINAL LOG LINE", log)
 
     def test_normal_interrupts(self):
+        self.assertEqual(self.invoke().returncode, 0)
+        before = self.digest_current()
         for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
             with self.subTest(signal=sig):
                 (self.project / "ready").unlink(missing_ok=True)
@@ -132,6 +142,7 @@ class LifecycleTests(unittest.TestCase):
                 _, err = process.communicate(timeout=8)
                 self.assertEqual(process.returncode, 128 + sig, err)
                 self.assert_empty_work()
+                self.assertEqual(before, self.digest_current())
 
     def test_concurrent_job_is_protected(self):
         process = self.start()
@@ -224,6 +235,51 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(self.invoke("clean").returncode, 0)
         self.assert_empty_work()
         self.assertEqual(before, self.digest_current())
+
+    def test_live_group_without_inherited_lock_is_preserved(self):
+        self.assertEqual(self.invoke("clean").returncode, 0)
+        runner = build.Runner(self.project)
+        work = self.root / "work" / ("b" * 32)
+        with runner.locked():
+            work.mkdir()
+            build.atomic_json(work / "owner.json", dict(runner.identity, kind="work", id=work.name,
+                                                       pgid=os.getpgrp()))
+        result = self.invoke("clean")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(b"still exists", result.stderr)
+        self.assertTrue(work.exists())
+        with runner.locked():
+            build.atomic_json(work / "owner.json", dict(runner.identity, kind="work", id=work.name, pgid=0))
+        self.assertEqual(self.invoke("clean").returncode, 0)
+
+    def test_child_gate_prevents_work_before_metadata(self):
+        runner = build.Runner(self.project)
+        write_json = build.atomic_json
+
+        def fail_group_metadata(path, value):
+            if value.get("kind") == "work" and value.get("pgid"):
+                raise OSError("simulated metadata write failure")
+            return write_json(path, value)
+
+        with mock.patch.dict(os.environ, dict(self.env, FAKE_MODE="wait")), \
+                mock.patch.object(build, "atomic_json", side_effect=fail_group_metadata):
+            self.assertNotEqual(runner.execute("build"), 0)
+        self.assertFalse((self.project / "ready").exists())
+        self.assert_empty_work()
+
+    def test_owned_tree_symlink_does_not_delete_target(self):
+        self.assertEqual(self.invoke("clean").returncode, 0)
+        runner = build.Runner(self.project)
+        sentinel = self.project / "original-asset"
+        sentinel.write_bytes(b"keep original")
+        with runner.locked():
+            work = self.root / "work" / ("c" * 32)
+            work.mkdir()
+            build.atomic_json(work / "owner.json", dict(runner.identity, kind="work", id=work.name, pgid=0))
+            (work / "link").symlink_to(sentinel)
+        self.assertEqual(self.invoke("clean").returncode, 0)
+        self.assertEqual(sentinel.read_bytes(), b"keep original")
+        self.assert_empty_work()
 
 
 if __name__ == "__main__":

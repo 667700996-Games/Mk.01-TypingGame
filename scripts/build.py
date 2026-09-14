@@ -86,7 +86,10 @@ class Runner:
     def read_json(self, path):
         if not regular(path):
             raise RuntimeError(f"Refusing non-regular metadata: {path}")
-        return json.loads(path.read_text(encoding="utf-8"))
+        value = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(value, dict):
+            raise RuntimeError(f"Invalid metadata object: {path}")
+        return value
 
     @contextlib.contextmanager
     def locked(self):

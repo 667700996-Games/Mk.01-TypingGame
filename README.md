@@ -26,4 +26,6 @@ make run
 make test
 ```
 
+개발 실행 파일은 `make build`, 개발 압축본은 `make package`로 생성합니다. 임시 파일 자동 정리, 최근 개발 산출물 2개와 로그 10개 보관 정책은 [빌드 관리 문서](docs/build-cleanup.md)를 참고하세요. 잔여 작업을 확인하고 회수하려면 `make clean`을 실행합니다.
+
 가사는 [행정안전부 우리나라 국가상징 안내](https://www.mois.go.kr/chd/sub/a05/story/screen.do)에 실린 애국가 1~4절을 기준으로 하며, 타자연습에 맞게 문장부호 없이 소절 단위로 구성했습니다.

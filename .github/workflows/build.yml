@@ -30,6 +30,7 @@ jobs:
         with:
           name: desktop-build-logs
           path: .build/logs/
+          include-hidden-files: true
           retention-days: 7
           if-no-files-found: ignore
       # Development packages stay on this disposable runner. No accumulating
