@@ -34,6 +34,15 @@ def atomic_json(path, value):
         stream.flush()
         os.fsync(stream.fileno())
     os.replace(temporary, path)
+    sync_directory(path.parent)
+
+
+def sync_directory(path):
+    fd = os.open(path, os.O_RDONLY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
 
 
 def regular(path):
@@ -181,9 +190,10 @@ class Runner:
                     except (OSError, ValueError, KeyError, RuntimeError) as exc:
                         self.warn(path, str(exc))
                 entries.sort(reverse=True)
-                keep = {path.name for _, path in entries[:count]}
-                if current:
-                    keep.add(current)  # Protect the last committed good output even after a crash.
+                keep = {current} if current else set()
+                for _, path in entries:
+                    if len(keep) < count:
+                        keep.add(path.name)
                 for _, path in entries:
                     if path.name not in keep:
                         self.remove(path, kind)
@@ -214,14 +224,26 @@ class Runner:
         if self.interrupted:
             raise Interrupted()
         print("+ " + " ".join(map(str, args)), flush=True)
-        process = subprocess.Popen(args, cwd=self.project, env=env, stdout=subprocess.PIPE,
-                                   stderr=subprocess.STDOUT, start_new_session=True,
-                                   pass_fds=(self.lock_fd,))
-        tail = bytearray()
+        gate_read, gate_write = os.pipe()
+        try:
+            process = subprocess.Popen(
+                [sys.executable, "-B", str(Path(__file__).resolve()), "_worker", str(gate_read),
+                 str(self.lock_fd), *map(str, args)],
+                cwd=self.project, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                start_new_session=True, pass_fds=(self.lock_fd, gate_read))
+        except BaseException:
+            os.close(gate_write)
+            raise
+        finally:
+            os.close(gate_read)
         log = work / "log" / "output.log"
+        tail = bytearray(log.read_bytes() if log.exists() else b"")
         try:
             meta["pgid"] = process.pid
             atomic_json(work / "owner.json", meta)
+            os.write(gate_write, b"1")  # No compiler runs before recovery metadata is durable.
+            os.close(gate_write)
+            gate_write = None
             with selectors.DefaultSelector() as selector:
                 selector.register(process.stdout, selectors.EVENT_READ)
                 while selector.get_map():
@@ -245,6 +267,8 @@ class Runner:
                 raise RuntimeError(f"Command exited {result}: {args[0]}")
             return bytes(tail)
         finally:
+            if gate_write is not None:
+                os.close(gate_write)
             if process.poll() is None or group_alive(process.pid):
                 self.stop(process)
             process.stdout.close()
@@ -301,10 +325,13 @@ class Runner:
                     self.current()  # Refuse to overwrite unrecognized existing metadata.
                     destination = self.root / "dev" / run_id
                     os.rename(stage, destination)
+                    sync_directory(destination)
+                    sync_directory(destination.parent)
                     # Publish only after a complete verified generation exists on the same filesystem.
                     pointer = work / "current.json"
                     atomic_json(pointer, {"owner": OWNER, "id": run_id})
                     os.replace(pointer, self.root / "current.json")
+                    sync_directory(self.root)
                     print(f"Published development artifact: {destination / artifact.name}", flush=True)
                 result = 0
             except Interrupted:
@@ -340,4 +367,12 @@ def main():
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "_worker":
+        gate, lock = map(int, sys.argv[2:4])
+        ready = os.read(gate, 1)
+        os.close(gate)
+        if ready != b"1":
+            sys.exit(1)
+        os.set_inheritable(lock, True)
+        os.execvpe(sys.argv[4], sys.argv[4:], os.environ)
     sys.exit(main())
