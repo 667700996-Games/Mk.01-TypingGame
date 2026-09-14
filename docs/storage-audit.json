@@ -1,0 +1,155 @@
+{
+  "initial": {
+    "time": "2026-09-15T07:54:42+0900",
+    "du_kib": "3992",
+    "df": "Filesystem   1024-blocks      Used Available Capacity iused     ifree %iused  Mounted on\n/dev/disk3s5   482797652 360259964  99885320    79% 1677525 998853200    0%   /System/Volumes/Data\n"
+  },
+  "cleanup": {
+    "time": "2026-09-15T07:55:28+0900",
+    "deleted": [
+      {
+        "path": ".DS_Store",
+        "reason": "Finder Bud1 metadata, not referenced by tracked project files; reproducible directory-view cache",
+        "bytes": 6148,
+        "allocated_bytes": 8192,
+        "sha256": "e1da67384181ae5793f7c75a85cd7dbc7b5c5ca35b0003c624a6ec2c6a4a4218"
+      }
+    ],
+    "df_before": "Filesystem   1024-blocks      Used Available Capacity iused     ifree %iused  Mounted on\n/dev/disk3s5   482797652 360266716  99878568    79% 1677528 998785680    0%   /System/Volumes/Data\n",
+    "df_after": "Filesystem   1024-blocks      Used Available Capacity iused     ifree %iused  Mounted on\n/dev/disk3s5   482797652 360266716  99878568    79% 1677527 998785680    0%   /System/Volumes/Data\n",
+    "du_after_kib": 3984
+  },
+  "protected_files": [
+    {
+      "path": "go.mod",
+      "bytes": 1633,
+      "allocated": 4096,
+      "sha256": "21298b8b02fa975ec794118b6522c45bb1847f00839087130c196806de9044dd",
+      "sha256_after": "21298b8b02fa975ec794118b6522c45bb1847f00839087130c196806de9044dd"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1061,
+      "allocated": 4096,
+      "sha256": "a2ac70c38e017cb636cf11ba048795b8e67bffea39715e78f8832db3bae20dcf",
+      "sha256_after": "a2ac70c38e017cb636cf11ba048795b8e67bffea39715e78f8832db3bae20dcf"
+    },
+    {
+      "path": "session.go",
+      "bytes": 4512,
+      "allocated": 8192,
+      "sha256": "adb27f720c8f579680a44e14af615c0ca95688c4431dc7ded27eaa071f47fb4b",
+      "sha256_after": "adb27f720c8f579680a44e14af615c0ca95688c4431dc7ded27eaa071f47fb4b"
+    },
+    {
+      "path": "lyrics.go",
+      "bytes": 2237,
+      "allocated": 4096,
+      "sha256": "02c257315fe6e67d4686436c6c539a7d0ae00b53eb9e0f31f8f12fd7652bbd84",
+      "sha256_after": "02c257315fe6e67d4686436c6c539a7d0ae00b53eb9e0f31f8f12fd7652bbd84"
+    },
+    {
+      "path": "go.sum",
+      "bytes": 66311,
+      "allocated": 69632,
+      "sha256": "000fd0a2030123fb2e0ec2a7b2fe02a6b357255a7cbbcde2eed44156439946c1",
+      "sha256_after": "000fd0a2030123fb2e0ec2a7b2fe02a6b357255a7cbbcde2eed44156439946c1"
+    },
+    {
+      "path": "session_test.go",
+      "bytes": 3065,
+      "allocated": 4096,
+      "sha256": "1b819417370258294363ac7403af4b63a1ae11e7d173caa064ab488c808b18ff",
+      "sha256_after": "1b819417370258294363ac7403af4b63a1ae11e7d173caa064ab488c808b18ff"
+    },
+    {
+      "path": "ui_test.go",
+      "bytes": 2661,
+      "allocated": 4096,
+      "sha256": "69f05d5e5072f917ea51c04f6fb09e71f2805989373892bb8b6df7d791ad3c61",
+      "sha256_after": "69f05d5e5072f917ea51c04f6fb09e71f2805989373892bb8b6df7d791ad3c61"
+    },
+    {
+      "path": "main.go",
+      "bytes": 15008,
+      "allocated": 16384,
+      "sha256": "9eff9050243066bc03278f02847e7cc05aa7841517439d403cfa271c0fa8fa04",
+      "sha256_after": "9eff9050243066bc03278f02847e7cc05aa7841517439d403cfa271c0fa8fa04"
+    },
+    {
+      "path": "fonts/NanumGothic-Regular.ttf",
+      "bytes": 2369696,
+      "allocated": 2371584,
+      "sha256": "7bda2b5ebf2519b484cca40ec5df786e6929499ac8ed7ff2a1431884e852e383",
+      "sha256_after": "7bda2b5ebf2519b484cca40ec5df786e6929499ac8ed7ff2a1431884e852e383"
+    }
+  ],
+  "initial_largest_files": [
+    {
+      "path": "fonts/NanumGothic-Regular.ttf",
+      "bytes": 2369696,
+      "allocated": 2371584,
+      "sha256": "7bda2b5ebf2519b484cca40ec5df786e6929499ac8ed7ff2a1431884e852e383"
+    },
+    {
+      "path": ".git/objects/c1/4ce884076da5e1bb9f1fba9920d35ad01e789b",
+      "bytes": 1100728,
+      "allocated": 1101824,
+      "sha256": "743078eeba39de16550a59648d677c3de5736e78ec230d395182fe88be4925b3"
+    },
+    {
+      "path": "go.sum",
+      "bytes": 66311,
+      "allocated": 69632,
+      "sha256": "000fd0a2030123fb2e0ec2a7b2fe02a6b357255a7cbbcde2eed44156439946c1"
+    },
+    {
+      "path": ".git/objects/56/e4ea8f38e78c8bead2cceb9ee386755697bef9",
+      "bytes": 24864,
+      "allocated": 28672,
+      "sha256": "b4a1c786c07408dbf8fd2e1a292946b2da3c1b6a85dcb8551d32b93594ebf0fe"
+    },
+    {
+      "path": "main.go",
+      "bytes": 15008,
+      "allocated": 16384,
+      "sha256": "9eff9050243066bc03278f02847e7cc05aa7841517439d403cfa271c0fa8fa04"
+    }
+  ],
+  "verification": {
+    "lifecycle_tests": 14,
+    "game_tests": "go test ./... PASS on go1.25.5 darwin/arm64",
+    "package_run": "e314d29cfb3242239fe63dd6ed2922ac",
+    "package_bytes": 15898522,
+    "package_sha256": "b3b5d61985dfc00163b6bc01317e229a8a6770475346d51221fff84ca235c30d",
+    "binary_bytes": 27938386,
+    "binary_sha256": "c3b93584a5897536d702b0343998f65e9e2a5e2d8a6ad55f841b6a36c1c15997",
+    "unverified": [
+      "remote GitHub Actions execution",
+      "Linux native build",
+      "Windows native runner/build",
+      "mobile/web/console",
+      "signed release bundles",
+      "interactive GUI run",
+      "physical power loss (simulated state only)"
+    ]
+  },
+  "final": {
+    "time": "2026-09-15T08:08:01+0900",
+    "allocated_kib": {
+      ".": 19760,
+      ".git": 1692,
+      ".build": 15564,
+      "fonts": 2316,
+      "scripts": 32,
+      "docs": 24,
+      "/Users/i/Library/Caches/go-build": 251056,
+      "/Users/i/go/pkg/mod": 822364
+    },
+    "df": "Filesystem   1024-blocks      Used Available Capacity iused      ifree %iused  Mounted on\n/dev/disk3s5   482797652 347518156 112627128    76% 1648193 1126271280    0%   /System/Volumes/Data\n",
+    "available_change_from_initial_kib": 12741808,
+    "work_directories": 0,
+    "dev_generations": 1,
+    "log_generations": 3
+  }
+}
