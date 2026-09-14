@@ -140,7 +140,7 @@ class Runner:
             self.warn(path, str(exc))
             return False
 
-    def archive_log(self, work, metadata, status):
+    def archive_log(self, work, status):
         target = self.root / "logs" / work.name
         source = work / "log"
         if source.exists():
@@ -159,7 +159,7 @@ class Runner:
                 if group_alive(pgid):
                     self.warn(path, f"Process group {pgid} still exists; preserved")
                     continue
-                self.archive_log(path, meta, "recovered after interruption")
+                self.archive_log(path, "recovered after interruption")
                 self.remove(path, "work")
             except (OSError, ValueError, RuntimeError) as exc:
                 self.warn(path, str(exc))
@@ -317,6 +317,8 @@ class Runner:
                                 if hashlib.sha256(stream.read()).digest() != hashlib.sha256(binary.read_bytes()).digest():
                                     raise RuntimeError("Packaged executable checksum mismatch")
                         binary.unlink()  # Identical bytes are now validated inside the archive.
+                    with open(artifact, "rb") as stream:
+                        os.fsync(stream.fileno())
                     atomic_json(stage / "owner.json", dict(self.identity, kind="dev", id=run_id,
                                 completed_ns=time.time_ns(), action=action, artifact=artifact.name,
                                 sha256=hashlib.sha256(artifact.read_bytes()).hexdigest()))
@@ -344,7 +346,7 @@ class Runner:
                     if group_alive(meta["pgid"]):
                         self.warn(work, "Child process group still exists; defer cleanup")
                     else:
-                        self.archive_log(work, meta, "success" if result == 0 else f"exit {result}")
+                        self.archive_log(work, "success" if result == 0 else f"exit {result}")
                         self.remove(work, "work")
                     self.prune()
                 except (OSError, ValueError, RuntimeError) as exc:

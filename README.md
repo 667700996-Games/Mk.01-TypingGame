@@ -14,16 +14,16 @@
 
 ## 실행
 
-Go 1.21 이상과 [Fyne의 플랫폼별 필수 도구](https://docs.fyne.io/started/)가 필요합니다.
+Go 1.21 이상과 [Fyne의 플랫폼별 필수 도구](https://docs.fyne.io/started/)가 필요합니다. macOS/Linux 관리 실행기는 Python 3.9 이상과 Make를 사용합니다.
 
 ```bash
-go run .
+make run
 ```
 
 테스트는 다음 명령으로 실행합니다.
 
 ```bash
-go test ./...
+make test
 ```
 
 가사는 [행정안전부 우리나라 국가상징 안내](https://www.mois.go.kr/chd/sub/a05/story/screen.do)에 실린 애국가 1~4절을 기준으로 하며, 타자연습에 맞게 문장부호 없이 소절 단위로 구성했습니다.
